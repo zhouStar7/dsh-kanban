@@ -22,7 +22,7 @@ dsh plugin --profile web add "github:zhouStar7/dsh-kanban#main"
 
 ## 功能特性
 
-- **看板入口**：DSH Web 侧边栏底部「任务看板」按钮，点击打开全屏看板面板（2s 轮询实时刷新）；支持 `Ctrl+K`（macOS 为 `Cmd+K`）快捷键一键打开/关闭。
+- **看板入口**：DSH Web 侧边栏底部「任务看板」按钮，点击后看板在**右侧主体区域**打开（替换中间对话区，不再是全屏浮层弹窗；2s 轮询实时刷新），再次点击或看板右上角「×」返回对话；支持 `Ctrl+K`（macOS 为 `Cmd+K`）快捷键一键打开/关闭。
 - **双视图切换**：看板顶部 Tabs 切换「看板」列视图与「路线图」甘特图视图（参考 GitHub Projects Roadmap：左侧任务列表 + 右侧时间轴，按状态分组泳道、周/月刻度自适应、今天竖线、任务条按状态着色，点击任意任务打开详情）。
 - **任务状态机**：`待领取 → 执行中 → 待审查 → 已审核 → 已完成`，含 `暂停中` 兜底状态。
 - **agent 自动执行**：任务被 agent 领取后自动改码并 `git commit`，无需人工介入。
@@ -42,7 +42,8 @@ DSH 是「主机平面 cordis 插件 + 客户端插件」双层架构，本插�
 ┌───────────────────────────── DSH Web（浏览器） ─────────────────────────────┐
 │  lib/client.js（React 外壳）                                                  │
 │    ├─ sidebar.footer.action  → 侧边栏「任务看板」入口                          │
-│    └─ shell.overlay          → 全屏看板面板，挂载 Vue 应用                     │
+│    └─ conversation（主体区）→ 动态注册 conversation 槽位遮蔽原对话界面，       │
+│                              挂载 Vue 看板应用（关闭时还原对话）               │
 │         └─ src/（Vue 3 + Tailwind v4 + shadcn-vue 看板 UI）                    │
 │               └─ ctx.remote.kanban.*（Typert Remote 远程调用）                │
 └───────────────────────────────────┬───────────────────────────────────────────┘
@@ -73,7 +74,7 @@ DSH 是「主机平面 cordis 插件 + 客户端插件」双层架构，本插�
 │   ├── wrap-client.mjs       # 把 vite CJS 产物包装成 DSH ModuleLoader 格式
 │   └── smoke-host.mjs        # 主机端冒烟测试（内存态跑完整任务流转）
 ├── src/                      # 客户端源码（Vue 3 + shadcn-vue）
-│   ├── client.ts             # React 外壳：挂载 Remote、注册侧边栏入口与 overlay
+│   ├── client.ts             # React 外壳：挂载 Remote、注册侧边栏入口与主体区视图
 │   ├── kanban-entry.ts       # Vue 应用挂载/卸载
 │   ├── remote.ts             # Typert Remote 描述符（远程方法声明）
 │   ├── App.vue               # 看板根组件

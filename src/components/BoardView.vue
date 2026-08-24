@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,14 +11,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LayoutGrid, Map, RefreshCw } from '@lucide/vue';
+import { LayoutGrid, Map, RefreshCw, XIcon } from '@lucide/vue';
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from '@/components/ui/tabs';
 import { useBoard } from '@/composables/useBoard';
+import { KANBAN_CLOSE } from '@/lib/bridge';
 import KanbanColumn from './KanbanColumn.vue';
 import NewTaskDialog from './NewTaskDialog.vue';
 import RoadmapView from './RoadmapView.vue';
 import TaskDetailSheet from './TaskDetailSheet.vue';
 import type { Task, TaskStatus } from '@/lib/types';
+
+// Optional host-provided callback: closes the main-body kanban view so the
+// DSH conversation surface is restored (injected by the React shell).
+const onClose = inject<(() => void) | undefined>(KANBAN_CLOSE, undefined);
 
 const board = useBoard();
 const detailTaskId = ref<string | null>(null);
@@ -179,7 +184,7 @@ onUnmounted(() => {
         <RefreshCw data-icon="inline-start" />
       </Button>
 
-      <div class="ml-auto">
+      <div class="ml-auto flex items-center gap-2">
         <NewTaskDialog
           :projects="board.projects"
           :selected-project-id="board.selectedProjectId"
@@ -187,6 +192,16 @@ onUnmounted(() => {
           @update:selected-project-id="(id) => (board.selectedProjectId = id)"
           @create="handleCreate"
         />
+        <Button
+          v-if="onClose"
+          variant="ghost"
+          size="icon"
+          aria-label="关闭看板，返回对话"
+          title="关闭看板，返回对话"
+          @click="onClose"
+        >
+          <XIcon data-icon="inline-start" />
+        </Button>
       </div>
     </div>
 

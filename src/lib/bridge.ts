@@ -25,6 +25,9 @@ export interface KanbanApi {
 
 export const KANBAN_API = Symbol('kanban-api');
 
+/** Optional close callback provided by the host shell (closes the main-body view). */
+export const KANBAN_CLOSE = Symbol('kanban-close');
+
 export function useKanbanApi(): KanbanApi {
   const injected = inject<KanbanApi>(KANBAN_API);
   if (injected) return injected;

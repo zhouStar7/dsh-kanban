@@ -3,11 +3,15 @@
  *
  * - mounts the `kanban` Typert Remote contribution (`ctx.remote.$mount`),
  * - registers a sidebar footer action (the「任务看板」entry),
- * - registers a frame-wide `shell.overlay` panel that mounts the shadcn-vue
- *   kanban app (see `./kanban-entry`).
+ * - opens the kanban app in the DSH **main body area** — the center
+ *   `conversation` column right of the sidebar — instead of a floating
+ *   overlay popup: while open it registers a dynamic `conversation` slot
+ *   entry that shadows the shipped conversation UI (dynamic registrations
+ *   are assigned a lower priority and the lowest-priority entry of a single
+ *   slot renders); disposing the entry restores the conversation surface.
  */
 import * as React from 'react';
-import { createElement, useEffect, useRef, useSyncExternalStore } from 'react';
+import { createElement, useEffect, useRef } from 'react';
 import { KANBAN_REMOTE } from './remote';
 import { mountKanban } from './kanban-entry';
 import type { KanbanApi } from './lib/bridge';
@@ -27,21 +31,63 @@ function injectStyles() {
   }
 }
 
-// ── tiny overlay open/closed store shared by the two slots ──────────────────
-let overlayOpen = false;
+// ── kanban open/closed store (in-main-body) ─────────────────────────────────
+let kanbanOpen = false;
+let disposeKanbanEntry: (() => void) | null = null;
+let kanbanContext: any = null; // captured plugin ctx for dynamic slots.register
+let kanbanApi: KanbanApi | null = null;
 const storeListeners = new Set<() => void>();
-function getOverlayOpen() {
-  return overlayOpen;
+
+function getKanbanOpen() {
+  return kanbanOpen;
 }
-function setOverlayOpen(v: boolean) {
-  overlayOpen = v;
+
+function notifyStore() {
   storeListeners.forEach((l) => l());
 }
+
 function subscribeStore(l: () => void) {
   storeListeners.add(l);
   return () => {
     storeListeners.delete(l);
   };
+}
+
+function setKanbanOpen(open: boolean) {
+  if (open === kanbanOpen) return;
+  kanbanOpen = open;
+  if (open) openKanban();
+  else closeKanban();
+  notifyStore();
+}
+
+/**
+ * Open the kanban in the DSH main body: register a dynamic `conversation`
+ * slot entry. The shipped conversation UI lives at priority 0; dynamic
+ * registrations are assigned a strictly lower priority, and a single slot
+ * renders its lowest-priority entry — so while this entry exists the center
+ * column shows the kanban instead of the chat / hero surface.
+ */
+function openKanban() {
+  if (disposeKanbanEntry !== null || kanbanContext === null || kanbanApi === null) return;
+  disposeKanbanEntry = kanbanContext.slots.register(
+    {
+      name: 'conversation',
+      inject: () => ({ kanbanApi }),
+    },
+    KanbanMainView as any,
+  );
+}
+
+function closeKanban() {
+  if (disposeKanbanEntry) {
+    try {
+      disposeKanbanEntry();
+    } catch {
+      /* entry already removed by the unload cascade */
+    }
+    disposeKanbanEntry = null;
+  }
 }
 
 // ── toggle hotkey (Ctrl+K / Cmd+K) ──────────────────────────────────────────
@@ -54,7 +100,7 @@ function setupToggleHotkey(): void {
     if (e.key.toLowerCase() !== 'k') return;
     e.preventDefault();
     e.stopPropagation();
-    setOverlayOpen(!getOverlayOpen());
+    setKanbanOpen(!kanbanOpen);
   };
   window.addEventListener('keydown', onKeydown, true);
   toggleHotkeyCleanup = () => window.removeEventListener('keydown', onKeydown, true);
@@ -127,53 +173,30 @@ function SidebarKanbanMenu(props: { wide: boolean; onOpen: () => void }) {
   );
 }
 
-// ── shell overlay panel (mounts the Vue app) ────────────────────────────────
-function KanbanOverlay(props: { kanbanApi: KanbanApi }) {
-  const open = useSyncExternalStore(subscribeStore, getOverlayOpen);
-  const hostRef = useRef<HTMLDivElement | null>(null);
+// ── main-body view (mounts the Vue kanban app into the conversation column) ─
+function KanbanMainView(props: { kanbanApi: KanbanApi }) {
+  // `kanbanApi` arrives through the entry's inject face; keep it in a ref so
+  // the mount effect below can read the latest value without re-running.
   const apiRef = useRef(props.kanbanApi);
   apiRef.current = props.kanbanApi;
+  const hostRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = hostRef.current;
-    if (!el || !open) return;
-    const dispose = mountKanban(el, apiRef.current);
+    if (!el) return;
+    const dispose = mountKanban(el, apiRef.current ?? (window as any).__kanbanApi, () => {
+      setKanbanOpen(false);
+    });
     return () => {
       dispose();
     };
-  }, [open]);
+  }, []);
 
-  if (!open) return null;
-
-  const backdropStyle: React.CSSProperties = {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.45)',
-    pointerEvents: 'auto',
-    display: 'flex',
-    alignItems: 'stretch',
-    justifyContent: 'stretch',
-    padding: '24px',
-    zIndex: 10000,
-  };
-  const panelStyle: React.CSSProperties = {
-    flex: 1,
-    background: 'var(--dsw-alias-panel-fill, #fff)',
-    color: 'var(--dsw-alias-label-primary, #111)',
-    borderRadius: 12,
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-    boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-  };
-
-  return createElement(
-    'div',
-    { style: backdropStyle, onClick: (e: any) => e.target === e.currentTarget && setOverlayOpen(false) },
-    createElement('div', { style: panelStyle, onClick: (e: any) => e.stopPropagation() },
-      createElement('div', { ref: hostRef, style: { flex: 1, minHeight: 0 } }),
-    ),
-  );
+  // Fill the center column exactly like the conversation surface it replaces.
+  return createElement('div', {
+    ref: hostRef,
+    style: { flex: 1, minHeight: 0, height: '100%', width: '100%', overflow: 'hidden' },
+  });
 }
 
 // ── plugin entry ────────────────────────────────────────────────────────────
@@ -182,11 +205,15 @@ export const inject = ['slots', 'remote'];
 export async function apply(ctx: any) {
   injectStyles();
   setupToggleHotkey();
+  kanbanContext = ctx;
   const remote = ctx.get('remote');
   await remote.$mount(KANBAN_REMOTE);
-  const kanbanApi = ctx.get('remote.kanban');
+  kanbanApi = ctx.get('remote.kanban');
   // 暴露到 window：作为 useKanbanApi() 的兜底来源，也便于在控制台诊断远程调用。
   (window as any).__kanbanApi = kanbanApi;
+
+  // Plugin unload must restore the conversation surface.
+  ctx.effect(() => () => setKanbanOpen(false), 'kanban: restore conversation surface on unload');
 
   ctx.slots.inject('sidebar.footer.action', () =>
     ctx.slots.register(
@@ -194,21 +221,9 @@ export async function apply(ctx: any) {
         name: 'sidebar.footer.action',
         id: 'kanban',
         order: 50,
-        inject: () => ({ onOpen: () => setOverlayOpen(true) }),
+        inject: () => ({ onOpen: () => setKanbanOpen(!kanbanOpen) }),
       },
       SidebarKanbanMenu as any,
-    ),
-  );
-
-  ctx.slots.inject('shell.overlay', () =>
-    ctx.slots.register(
-      {
-        name: 'shell.overlay',
-        id: 'kanban',
-        order: 50,
-        inject: () => ({ kanbanApi }),
-      },
-      KanbanOverlay as any,
     ),
   );
 }
