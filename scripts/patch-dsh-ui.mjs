@@ -92,7 +92,7 @@ function patchWorkspace(src) {
   if (idx === -1) throw new Error('workspace: ViewOptionsMenu marker not found');
 
   const button = 'wide && (0, react_jsx_runtime.jsx)("button", { type: "button", className: WorkspaceBrowser_module_css_default.searchButton, "data-plugin": "dsh-kanban", "aria-label": t("session.new"), title: t("session.new"), onClick: () => { startSession(); }, children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 }) }), ';
-  src = src.slice(0, idx) + button + src.slice(idx);
+  src = src.replace(menuMarker, 'children: [' + button + 'wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {');
   return src;
 }
 
