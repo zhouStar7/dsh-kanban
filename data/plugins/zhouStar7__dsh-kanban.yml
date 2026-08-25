@@ -1,7 +1,7 @@
-url: https://github.com/zhouStar7/dsh-k
-name: zhouStar7/dsh-k
+url: https://github.com/zhouStar7/dsh-kanban
+name: zhouStar7/dsh-kanban
 category: dev
-tarball: https://github.com/zhouStar7/dsh-k/releases/latest/download/dsh-k.tgz
+tarball: https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz
 description:
   en: "Git-branch task board for DeepSeek Harness: agents claim tasks, commit in isolated branches, and merge after review."
   zh: "DeepSeek Harness 的 git 分支任务看板：agent 领取任务、独立分支提交、审核后自动合并。"

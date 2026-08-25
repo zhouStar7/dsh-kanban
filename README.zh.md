@@ -9,18 +9,18 @@ DeepSeek Harness（DSH）任务看板插件 —— 在 DSH Web 左侧边栏提�
 从 GitHub 直接安装（推荐）：
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-k/releases/latest/download/dsh-k.tgz"
+dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz"
 ```
 
 如需指定版本 / 分支（Tag 或 commit 后跟 `#`）：
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-k/releases/latest/download/dsh-k.tgz"
+dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz"
 ```
 
 安装完成后**重启 / 重载 DSH 应用**，侧边栏原有「新会话」位置变为「会话 / 看板」tab 切换即安装成功（DSH Desktop 另需运行 `scripts/patch-dsh-ui.mjs` 移动新建会话按钮，见下文）。
 
-> 强制刷新安装：`dsh plugin --profile web remove @deepseek-kanban/plugin && dsh plugin --profile web add "https://github.com/zhouStar7/dsh-k/releases/latest/download/dsh-k.tgz"`
+> 强制刷新安装：`dsh plugin --profile web remove @deepseek-kanban/plugin && dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz"`
 
 ## 功能特性
 
@@ -115,7 +115,7 @@ pnpm watch        # 开发时增量构建
 **普通用户 / 快速体验（从 GitHub 安装）：**
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-k/releases/latest/download/dsh-k.tgz"
+dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz"
 ```
 
 **本地开发（`file:` 协议，硬链接实时生效）：**
@@ -153,7 +153,7 @@ pnpm test:smoke   # 内存态验证 创建→评论继续→审核→合并 全�
 
 ## 使用说明
 
-![看板面板](https://raw.githubusercontent.com/zhouStar7/dsh-k/main/docs/assets/kanban-board.png)
+![看板面板](https://raw.githubusercontent.com/zhouStar7/dsh-kanban/main/docs/assets/kanban-board.png)
 
 ### 新建任务
 
@@ -163,7 +163,7 @@ pnpm test:smoke   # 内存态验证 创建→评论继续→审核→合并 全�
    - 在「任务描述」中输入 `/` 可快速引用项目文件路径（同上，评论输入框同样支持）。
 4. 创建后任务进入「待领取」，agent 自动领取执行。
 
-![新建任务](https://raw.githubusercontent.com/zhouStar7/dsh-k/main/docs/assets/new-task-dialog.png)
+![新建任务](https://raw.githubusercontent.com/zhouStar7/dsh-kanban/main/docs/assets/new-task-dialog.png)
 
 ### 状态流转
 
