@@ -24,10 +24,13 @@ function patchSidebar(src) {
 
   const component = [
     '',
-    'function KanbanSessionTabs() {',
+    'function KanbanSessionTabs({ wide }) {',
     '\tvar state = react.useState(typeof window !== "undefined" && typeof window.__kanbanIsOpen === "function" ? window.__kanbanIsOpen() : false);',
     '\tvar open = state[0];',
     '\tvar setOpen = state[1];',
+    '\tvar labelChat = wide ? "会话" : "会";',
+    '\tvar labelBoard = wide ? "看板" : "板";',
+    '\tvar fontSize = wide ? 11 : 9;',
     '\treact.useEffect(function() {',
     '\t\tfunction sync(e) {',
     '\t\t\tsetOpen(!!(e && e.detail && e.detail.open));',
@@ -35,13 +38,13 @@ function patchSidebar(src) {
     '\t\twindow.addEventListener("kanban:statechange", sync);',
     '\t\treturn function() { window.removeEventListener("kanban:statechange", sync); };',
     '\t}, []);',
-    '\tvar barStyle = { display: "flex", gap: 2, margin: "0 12px 8px", padding: 2, borderRadius: 8, background: "var(--dsw-alias-fill-subtle, rgba(0,0,0,0.05))" };',
+    '\tvar barStyle = { display: "flex", gap: 2, margin: wide ? "0 12px 8px" : "0 0 8px", padding: 2, borderRadius: 8, background: "var(--dsw-alias-fill-subtle, rgba(0,0,0,0.05))" };',
     '\tfunction tabStyle(active) {',
-    '\t\treturn { flex: 1, height: 26, borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, lineHeight: "26px", padding: 0, background: active ? "var(--dsw-alias-panel-fill, #fff)" : "transparent", color: active ? "var(--dsw-alias-label-primary, #111)" : "var(--dsw-alias-label-tertiary, #666)" };',
+    '\t\treturn { flex: 1, height: 26, borderRadius: 6, border: "none", cursor: "pointer", fontSize: fontSize, lineHeight: "26px", padding: 0, background: active ? "var(--dsw-alias-panel-fill, #fff)" : "transparent", color: active ? "var(--dsw-alias-label-primary, #111)" : "var(--dsw-alias-label-tertiary, #666)" };',
     '\t}',
     '\treturn (0, react_jsx_runtime.jsxs)("div", { role: "tablist", "aria-label": "\u4f1a\u8bdd / \u770b\u677f", style: barStyle, children: [',
-    '\t\t(0, react_jsx_runtime.jsx)("button", { type: "button", role: "tab", "aria-selected": !open, style: tabStyle(!open), onClick: function() { if (open && typeof window.__kanbanClose === "function") window.__kanbanClose(); }, children: "\u4f1a\u8bdd" }),',
-    '\t\t(0, react_jsx_runtime.jsx)("button", { type: "button", role: "tab", "aria-selected": open, style: tabStyle(open), onClick: function() { if (!open && typeof window.__kanbanOpen === "function") window.__kanbanOpen(); }, children: "\u770b\u677f" })',
+    '\t\t(0, react_jsx_runtime.jsx)("button", { type: "button", role: "tab", "aria-selected": !open, style: tabStyle(!open), onClick: function() { if (open && typeof window.__kanbanClose === "function") window.__kanbanClose(); }, children: labelChat }),',
+    '\t\t(0, react_jsx_runtime.jsx)("button", { type: "button", role: "tab", "aria-selected": open, style: tabStyle(open), onClick: function() { if (!open && typeof window.__kanbanOpen === "function") window.__kanbanOpen(); }, children: labelBoard })',
     '\t]});',
     '}',
     ''
@@ -65,7 +68,7 @@ function patchSidebar(src) {
   const block = src.slice(tooltipStart, regionDivStart);
   if (!block.includes('session.new.label')) throw new Error('sidebar: unexpected new-session block');
 
-  const replacement = '(0, react_jsx_runtime.jsx)(KanbanSessionTabs, {}),\n\t\t\t\t\t';
+  const replacement = '(0, react_jsx_runtime.jsx)(KanbanSessionTabs, { wide }),\n\t\t\t\t\t';
   src = src.slice(0, tooltipStart) + replacement + src.slice(regionDivStart);
   return src;
 }
