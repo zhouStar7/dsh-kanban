@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LayoutGrid, Map, RefreshCw, XIcon } from '@lucide/vue';
+import { ArrowLeft, LayoutGrid, Map, RefreshCw } from '@lucide/vue';
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from '@/components/ui/tabs';
 import { useBoard } from '@/composables/useBoard';
 import { KANBAN_CLOSE } from '@/lib/bridge';
@@ -164,43 +164,45 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col h-full gap-3 p-4">
     <div class="flex items-center gap-2">
-      <Select
-        :model-value="board.selectedProjectId ?? undefined"
-        @update:model-value="(v) => (board.selectedProjectId = v as string)"
+      <Button
+        v-if="onClose"
+        variant="ghost"
+        size="sm"
+        aria-label="返回对话"
+        title="返回对话"
+        @click="onClose"
       >
-        <SelectTrigger class="w-64">
-          <SelectValue placeholder="选择项目" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectItem v-for="p in board.projects" :key="p.id" :value="p.id">
-              {{ p.title }}
-            </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-
-      <Button variant="ghost" size="icon" aria-label="刷新" @click="refresh">
-        <RefreshCw data-icon="inline-start" />
+        <ArrowLeft data-icon="inline-start" />
+        返回
       </Button>
 
+      <NewTaskDialog
+        :projects="board.projects"
+        :selected-project-id="board.selectedProjectId"
+        :submitting="submitting"
+        @update:selected-project-id="(id) => (board.selectedProjectId = id)"
+        @create="handleCreate"
+      />
+
       <div class="ml-auto flex items-center gap-2">
-        <NewTaskDialog
-          :projects="board.projects"
-          :selected-project-id="board.selectedProjectId"
-          :submitting="submitting"
-          @update:selected-project-id="(id) => (board.selectedProjectId = id)"
-          @create="handleCreate"
-        />
-        <Button
-          v-if="onClose"
-          variant="ghost"
-          size="icon"
-          aria-label="关闭看板，返回对话"
-          title="关闭看板，返回对话"
-          @click="onClose"
+        <Select
+          :model-value="board.selectedProjectId ?? undefined"
+          @update:model-value="(v) => (board.selectedProjectId = v as string)"
         >
-          <XIcon data-icon="inline-start" />
+          <SelectTrigger class="w-64">
+            <SelectValue placeholder="选择项目" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem v-for="p in board.projects" :key="p.id" :value="p.id">
+                {{ p.title }}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <Button variant="ghost" size="icon" aria-label="刷新" @click="refresh">
+          <RefreshCw data-icon="inline-start" />
         </Button>
       </div>
     </div>

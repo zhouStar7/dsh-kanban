@@ -2,13 +2,13 @@
  * Browser half of the kanban plugin.
  *
  * - mounts the `kanban` Typert Remote contribution (`ctx.remote.$mount`),
- * - registers a sidebar footer action (the「任务看板」entry),
+ * - registers the「任务看板」entry in the conversation title-row action group
+  (`conversation.session.header.actions`),
  * - opens the kanban app in the DSH **main body area** — the center
  *   `conversation` column right of the sidebar — instead of a floating
  *   overlay popup: while open it registers a dynamic `conversation` slot
- *   entry that shadows the shipped conversation UI (dynamic registrations
- *   are assigned a lower priority and the lowest-priority entry of a single
- *   slot renders); disposing the entry restores the conversation surface.
+ *   entry at priority -1 that shadows the shipped conversation UI (a single
+ *   slot renders its lowest-priority entry); disposing restores the surface.
  */
 import * as React from 'react';
 import { createElement, useEffect, useRef } from 'react';
@@ -109,13 +109,13 @@ function setupToggleHotkey(): void {
   toggleHotkeyCleanup = () => window.removeEventListener('keydown', onKeydown, true);
 }
 
-// ── sidebar footer action ───────────────────────────────────────────────────
+// ── conversation header action（工作区标题栏右侧按钮组）─────────────────────
 function BoardIcon() {
   return createElement(
     'svg',
     {
-      width: 16,
-      height: 16,
+      width: 15,
+      height: 15,
       viewBox: '0 0 24 24',
       fill: 'none',
       stroke: 'currentColor',
@@ -132,47 +132,33 @@ function BoardIcon() {
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || '');
 const HOTKEY_LABEL = IS_MAC ? '⌘K' : 'Ctrl+K';
 
-function SidebarKanbanMenu(props: { wide: boolean; onOpen: () => void }) {
-  const wide = props.wide;
-  const rowStyle: React.CSSProperties = {
-    display: 'flex',
+function HeaderKanbanAction(props: { onOpen: () => void }) {
+  const actionStyle: React.CSSProperties = {
+    display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
-    width: wide ? '100%' : 'auto',
-    padding: wide ? '6px 8px' : '6px',
-    borderRadius: 8,
+    gap: 5,
+    minHeight: 28,
+    padding: '3px 8px',
+    borderRadius: 6,
     cursor: 'pointer',
     background: 'transparent',
     border: 'none',
-    color: 'inherit',
-    fontSize: 14,
-    justifyContent: wide ? 'flex-start' : 'center',
-  };
-  const kbdStyle: React.CSSProperties = {
-    marginLeft: 'auto',
-    fontSize: 11,
-    lineHeight: 1,
-    padding: '3px 6px',
-    borderRadius: 6,
-    border: '1px solid var(--dsw-alias-border, rgba(0,0,0,0.15))',
-    background: 'var(--dsw-alias-fill-subtle, rgba(0,0,0,0.05))',
     color: 'var(--dsw-alias-label-tertiary, #666)',
-    fontFamily: 'inherit',
+    fontSize: 12,
+    lineHeight: '18px',
     whiteSpace: 'nowrap',
-    opacity: 0.85,
   };
   return createElement(
     'button',
     {
       type: 'button',
-      style: rowStyle,
+      style: actionStyle,
       onClick: props.onOpen,
       title: `任务看板（${HOTKEY_LABEL}）`,
       'aria-label': `任务看板（${HOTKEY_LABEL}）`,
     },
     createElement(BoardIcon),
-    wide ? createElement('span', null, '任务看板') : null,
-    wide ? createElement('kbd', { style: kbdStyle }, HOTKEY_LABEL) : null,
+    createElement('span', null, '任务看板'),
   );
 }
 
@@ -218,15 +204,15 @@ export async function apply(ctx: any) {
   // Plugin unload must restore the conversation surface.
   ctx.effect(() => () => setKanbanOpen(false), 'kanban: restore conversation surface on unload');
 
-  ctx.slots.inject('sidebar.footer.action', () =>
+  ctx.slots.inject('conversation.session.header.actions', () =>
     ctx.slots.register(
       {
-        name: 'sidebar.footer.action',
+        name: 'conversation.session.header.actions',
         id: 'kanban',
-        order: 50,
+        order: 10,
         inject: () => ({ onOpen: () => setKanbanOpen(!kanbanOpen) }),
       },
-      SidebarKanbanMenu as any,
+      HeaderKanbanAction as any,
     ),
   );
 }
