@@ -70,5 +70,10 @@
   "dependencies": {
     "dompurify": "^3.4.14",
     "marked": "^18.0.10"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhouStar7/dsh-k.git"
+  },
+  "homepage": "https://github.com/zhouStar7/dsh-k"
 }
