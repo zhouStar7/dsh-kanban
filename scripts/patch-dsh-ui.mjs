@@ -85,14 +85,87 @@ function patchWorkspace(src) {
     if (to !== -1) src = src.slice(0, from) + '100' + src.slice(to);
   }
 
-  // 新会话按钮放进 headerActions 按钮组最前（与搜索、视图、添加工作区同排），
-  // hover 样式与搜索按钮一致（searchButton）。
-  const menuMarker = 'children: [wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {';
-  const idx = src.indexOf(menuMarker);
-  if (idx === -1) throw new Error('workspace: ViewOptionsMenu marker not found');
-
-  const button = 'wide && (0, react_jsx_runtime.jsx)("button", { type: "button", className: WorkspaceBrowser_module_css_default.searchButton, "data-plugin": "dsh-kanban", "aria-label": t("session.new"), title: t("session.new"), onClick: () => { startSession(); }, children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 }) }), ';
-  src = src.replace(menuMarker, 'children: [' + button + 'wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {');
+  // headerActions 按钮组最终顺序：新会话（Tooltip，hover 同搜索）→ 添加工作区 → 视图选项。
+  const t8 = '\t'.repeat(8);
+  const t9 = '\t'.repeat(9);
+  const t10 = '\t'.repeat(10);
+  const t11 = '\t'.repeat(11);
+  const t12 = '\t'.repeat(12);
+  const oldBlock = [
+    t8 + 'children: [wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {',
+    t9 + 'groupBy,',
+    t9 + 'orderBy,',
+    t9 + 'onGroupPick: (mode) => {',
+    t10 + 'actions.setGroupBy(mode);',
+    t9 + '},',
+    t9 + 'onOrderPick: (mode) => {',
+    t10 + 'actions.setOrderBy(mode);',
+    t9 + '},',
+    t9 + 't',
+    t8 + '}), directoryFlowAvailable && (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Tooltip, {',
+    t9 + 'label: t("workspace.add"),',
+    t9 + 'side: "bottom",',
+    t9 + 'delayMs: 500,',
+    t9 + 'children: (0, react_jsx_runtime.jsx)("button", {',
+    t10 + 'ref: wsPlusRef,',
+    t10 + 'type: "button",',
+    t10 + 'className: WorkspaceBrowser_module_css_default.iconButton,',
+    t10 + '"aria-label": t("workspace.add"),',
+    t10 + 'onClick: () => {',
+    t11 + 'setWsPickerOpen((v) => !v);',
+    t10 + '},',
+    t10 + 'children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconProjectAddOutline16, { size: wide ? 16 : 18 })',
+    t9 + '})',
+    t8 + '})]'
+  ].join('\n');
+  const oldIdx = src.indexOf(oldBlock);
+  if (oldIdx === -1) throw new Error('workspace: headerActions children block not found');
+  const newBlock = [
+    t8 + 'children: [',
+    t9 + 'wide && (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Tooltip, {',
+    t10 + 'label: t("session.new"),',
+    t10 + 'side: "bottom",',
+    t10 + 'delayMs: 500,',
+    t10 + 'children: (0, react_jsx_runtime.jsx)("button", {',
+    t11 + 'type: "button",',
+    t11 + 'className: WorkspaceBrowser_module_css_default.searchButton,',
+    t11 + '"data-plugin": "dsh-kanban",',
+    t11 + '"aria-label": t("session.new"),',
+    t11 + 'onClick: () => {',
+    t12 + 'startSession();',
+    t11 + '},',
+    t11 + 'children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 })',
+    t10 + '})',
+    t9 + '}),',
+    t9 + 'directoryFlowAvailable && (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Tooltip, {',
+    t10 + 'label: t("workspace.add"),',
+    t10 + 'side: "bottom",',
+    t10 + 'delayMs: 500,',
+    t10 + 'children: (0, react_jsx_runtime.jsx)("button", {',
+    t11 + 'ref: wsPlusRef,',
+    t11 + 'type: "button",',
+    t11 + 'className: WorkspaceBrowser_module_css_default.iconButton,',
+    t11 + '"aria-label": t("workspace.add"),',
+    t11 + 'onClick: () => {',
+    t12 + 'setWsPickerOpen((v) => !v);',
+    t11 + '},',
+    t11 + 'children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconProjectAddOutline16, { size: wide ? 16 : 18 })',
+    t10 + '})',
+    t9 + '}),',
+    t9 + 'wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {',
+    t10 + 'groupBy,',
+    t10 + 'orderBy,',
+    t10 + 'onGroupPick: (mode) => {',
+    t11 + 'actions.setGroupBy(mode);',
+    t10 + '},',
+    t10 + 'onOrderPick: (mode) => {',
+    t11 + 'actions.setOrderBy(mode);',
+    t10 + '},',
+    t10 + 't',
+    t9 + '})',
+    t8 + ']'
+  ].join('\n');
+  src = src.slice(0, oldIdx) + newBlock + src.slice(oldIdx + oldBlock.length);
   return src;
 }
 
