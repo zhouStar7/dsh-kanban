@@ -23,14 +23,14 @@ Turn projects, git branches and AI agents into one automated pipeline: create a 
 ## 🚀 Install (GitHub Release, one line)
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz"
+dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
 ```
 
 Install the plugin, then **restart / reload DSH** — the sidebar shows「会话 / 看板」tabs.
 
 > Force reinstall:
 > ```bash
-> dsh plugin --profile web remove @deepseek-kanban/plugin && dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-k.tgz"
+> dsh plugin --profile web remove @deepseek-kanban/plugin && dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
 > ```
 
 ### DSH Desktop sidebar patch
