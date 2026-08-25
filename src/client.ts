@@ -2,8 +2,8 @@
  * Browser half of the kanban plugin.
  *
  * - mounts the `kanban` Typert Remote contribution (`ctx.remote.$mount`),
- * - registers the「任务看板」entry in the conversation title-row action group
-  (`conversation.session.header.actions`),
+ * - exposes the 会话/看板 tab bridge consumed by the patched sidebar tabs
+ *   (`window.__kanbanOpen` / `__kanbanClose` / `__kanbanIsOpen` + `kanban:statechange`),
  * - opens the kanban app in the DSH **main body area** — the center
  *   `conversation` column right of the sidebar — instead of a floating
  *   overlay popup: while open it registers a dynamic `conversation` slot
@@ -53,12 +53,17 @@ function subscribeStore(l: () => void) {
   };
 }
 
+function broadcastKanbanState() {
+  window.dispatchEvent(new CustomEvent('kanban:statechange', { detail: { open: kanbanOpen } }));
+}
+
 function setKanbanOpen(open: boolean) {
   if (open === kanbanOpen) return;
   kanbanOpen = open;
   if (open) openKanban();
   else closeKanban();
   notifyStore();
+  broadcastKanbanState();
 }
 
 /**
@@ -109,58 +114,7 @@ function setupToggleHotkey(): void {
   toggleHotkeyCleanup = () => window.removeEventListener('keydown', onKeydown, true);
 }
 
-// ── conversation header action（工作区标题栏右侧按钮组）─────────────────────
-function BoardIcon() {
-  return createElement(
-    'svg',
-    {
-      width: 15,
-      height: 15,
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: 2,
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-    },
-    createElement('rect', { x: 3, y: 3, width: 18, height: 18, rx: 2 }),
-    createElement('path', { d: 'M3 9h18' }),
-    createElement('path', { d: 'M9 21V9' }),
-  );
-}
-
-const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || '');
-const HOTKEY_LABEL = IS_MAC ? '⌘K' : 'Ctrl+K';
-
-function HeaderKanbanAction(props: { onOpen: () => void }) {
-  const actionStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    minHeight: 28,
-    padding: '3px 8px',
-    borderRadius: 6,
-    cursor: 'pointer',
-    background: 'transparent',
-    border: 'none',
-    color: 'var(--dsw-alias-label-tertiary, #666)',
-    fontSize: 12,
-    lineHeight: '18px',
-    whiteSpace: 'nowrap',
-  };
-  return createElement(
-    'button',
-    {
-      type: 'button',
-      style: actionStyle,
-      onClick: props.onOpen,
-      title: `任务看板（${HOTKEY_LABEL}）`,
-      'aria-label': `任务看板（${HOTKEY_LABEL}）`,
-    },
-    createElement(BoardIcon),
-    createElement('span', null, '任务看板'),
-  );
-}
+// ── 会话/看板 tab 状态桥接（侧边栏 tab 由 patch-dsh-ui.mjs 注入并调用 window API）─
 
 // ── main-body view (mounts the Vue kanban app into the conversation column) ─
 function KanbanMainView(props: { kanbanApi: KanbanApi }) {
@@ -201,18 +155,22 @@ export async function apply(ctx: any) {
   // 暴露到 window：作为 useKanbanApi() 的兜底来源，也便于在控制台诊断远程调用。
   (window as any).__kanbanApi = kanbanApi;
 
-  // Plugin unload must restore the conversation surface.
-  ctx.effect(() => () => setKanbanOpen(false), 'kanban: restore conversation surface on unload');
+  // 会话/看板 tab 状态桥接（patch-dsh-ui.mjs 注入的侧边栏 tab 调用这些 API）。
+  const w = window as any;
+  w.__kanbanIsOpen = () => kanbanOpen;
+  w.__kanbanOpen = () => setKanbanOpen(true);
+  w.__kanbanClose = () => setKanbanOpen(false);
+  w.__kanbanToggle = () => setKanbanOpen(!kanbanOpen);
 
-  ctx.slots.inject('conversation.session.header.actions', () =>
-    ctx.slots.register(
-      {
-        name: 'conversation.session.header.actions',
-        id: 'kanban',
-        order: 10,
-        inject: () => ({ onOpen: () => setKanbanOpen(!kanbanOpen) }),
-      },
-      HeaderKanbanAction as any,
-    ),
+  // Plugin unload must restore the conversation surface and remove the bridge.
+  ctx.effect(
+    () => () => {
+      setKanbanOpen(false);
+      delete w.__kanbanIsOpen;
+      delete w.__kanbanOpen;
+      delete w.__kanbanClose;
+      delete w.__kanbanToggle;
+    },
+    'kanban: restore conversation surface on unload',
   );
 }

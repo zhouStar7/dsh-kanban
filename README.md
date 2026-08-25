@@ -16,13 +16,13 @@ dsh plugin --profile web add "github:zhouStar7/dsh-kanban"
 dsh plugin --profile web add "github:zhouStar7/dsh-kanban#main"
 ```
 
-安装完成后**重启 / 重载 DSH 应用**，会话标题栏右侧（工作区按钮组）出现「任务看板」入口即安装成功。
+安装完成后**重启 / 重载 DSH 应用**，侧边栏原有「新会话」位置变为「会话 / 看板」tab 切换即安装成功（DSH Desktop 另需运行 `scripts/patch-dsh-ui.mjs` 移动新建会话按钮，见下文）。
 
 > 强制刷新安装：`dsh plugin --profile web remove @deepseek-kanban/plugin && dsh plugin --profile web add "github:zhouStar7/dsh-kanban"`
 
 ## 功能特性
 
-- **看板入口**：DSH Web 会话标题栏右侧（工作区按钮组）的「任务看板」按钮，点击后看板在**右侧主体区域**打开（替换中间对话区，不再是全屏浮层弹窗；4s 轮询实时刷新），看板左上角「返回」或再次点击入口返回对话；支持 `Ctrl+K`（macOS 为 `Cmd+K`）快捷键一键打开/关闭。
+- **看板入口**：侧边栏原有「新会话」位置改为「会话 / 看板」tab，点「看板」在**右侧主体区域**打开看板（替换中间对话区，不再是全屏浮层弹窗；4s 轮询实时刷新），点「会话」或看板左上角「返回」回到对话；支持 `Ctrl+K`（macOS 为 `Cmd+K`）快捷键一键打开/关闭。
 - **双视图切换**：看板顶部 Tabs 切换「看板」列视图与「路线图」甘特图视图（参考 GitHub Projects Roadmap：左侧任务列表 + 右侧时间轴，按状态分组泳道、周/月刻度自适应、今天竖线、任务条按状态着色，点击任意任务打开详情）。
 - **任务状态机**：`待领取 → 执行中 → 待审查 → 已审核 → 已完成`，含 `暂停中` 兜底状态。
 - **agent 自动执行**：任务被 agent 领取后自动改码并 `git commit`，无需人工介入。
@@ -41,7 +41,7 @@ DSH 是「主机平面 cordis 插件 + 客户端插件」双层架构，本插�
 ```
 ┌───────────────────────────── DSH Web（浏览器） ─────────────────────────────┐
 │  lib/client.js（React 外壳）                                                  │
-│    ├─ conversation.session.header.actions → 标题栏右侧「任务看板」入口       │
+│    ├─ 侧边栏「会话/看板」tab（配合 patch-dsh-ui.mjs 注入）      │
 │    └─ conversation（主体区）→ 动态注册 conversation 槽位遮蔽原对话界面，       │
 │                              挂载 Vue 看板应用（关闭时还原对话）               │
 │         └─ src/（Vue 3 + Tailwind v4 + shadcn-vue 看板 UI）                    │
@@ -128,7 +128,20 @@ pnpm sync:dsh     # 等价于 build + remove + add
 
 > ⚠️ `file:` 协议路径必须是 WSL 原生路径（`/home/zhouStar7/...`），不要用 `\\wsl.localhost\...` 形式的 Windows 路径，否则 pnpm 会报 `ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND`。
 
-安装后**重启 / 重载 DSH 应用**（或重载插件）生效。之后会话标题栏右侧（工作区按钮组）出现「任务看板」入口。
+安装后**重启 / 重载 DSH 应用**（或重载插件）生效。之后侧边栏原有「新会话」位置显示「会话 / 看板」tab。
+
+### DSH Desktop 侧边栏补丁（新会话按钮 → tab 切换）
+
+DSH Desktop 内置侧边栏的「新会话」按钮不在插件槽位里，需要打一个小补丁：
+
+```bash
+node scripts/patch-dsh-ui.mjs
+```
+
+- 把侧边栏原有「新会话」位置改成「会话 / 看板」tab 切换；
+- 把「新会话」图标按钮加入工作区列表右上角按钮组（搜索按钮左侧）。
+
+脚本幂等，会在 `resources/app/node_modules/@deepseek-ai/*/lib/client.js` 旁边生成 `.dsh-kanban.bak` 备份；DSH 升级后重新运行一次即可。
 
 ### 冒烟测试
 
