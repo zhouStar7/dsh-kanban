@@ -76,30 +76,23 @@ function patchSidebar(src) {
 function patchWorkspace(src) {
   if (src.includes('"data-plugin": "dsh-kanban"')) return src;
 
-  const widenCss = (marker, width) => {
-    const idx = src.indexOf(marker);
-    if (idx !== -1) {
-      const from = idx + marker.length;
-      const to = src.indexOf('px;', from);
-      if (to !== -1) src = src.slice(0, from) + width + src.slice(to);
-    }
-  };
-  widenCss('.headerActions{opacity:1;visibility:visible;max-width:', '100');
-  widenCss('.searchSlot{box-sizing:border-box;min-width:0;max-width:', '60');
-
-  // 新会话按钮放进 searchSlot 内部、搜索按钮之前（最左侧），hover 与搜索一致。
-  const refMarker = 'children: (0, react_jsx_runtime.jsxs)("div", {\n\t\t\t\t\t\t\t\t\tref: searchRoot,';
-  const refIdx = src.indexOf(refMarker);
-  if (refIdx === -1) throw new Error('workspace: searchRoot marker not found');
-  const button = 'wide && (0, react_jsx_runtime.jsx)("button", { type: "button", className: WorkspaceBrowser_module_css_default.searchButton, "data-plugin": "dsh-kanban", "aria-label": t("session.new"), title: t("session.new"), onClick: () => { startSession(); }, children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 }) }),';
-  const replaced = 'children: [\n\t\t\t\t\t\t\t\t\t' + button + '\n\t\t\t\t\t\t\t\t\t(0, react_jsx_runtime.jsxs)("div", {\n\t\t\t\t\t\t\t\t\t\tref: searchRoot,';
-  src = src.replace(refMarker, replaced);
-
-  const closePattern = '\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t]\n\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t}),';
-  const closeIdx = src.indexOf(closePattern);
-  if (closeIdx !== -1) {
-    src = src.slice(0, closeIdx) + '\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t]\n\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t]\n\t\t\t\t\t\t\t}),' + src.slice(closeIdx + closePattern.length);
+  // headerActions 默认 max-width:60px 只放得下两个图标，拉长到 100px 容纳三个按钮。
+  const cssMarker = '.headerActions{opacity:1;visibility:visible;max-width:';
+  const cssIdx = src.indexOf(cssMarker);
+  if (cssIdx !== -1) {
+    const from = cssIdx + cssMarker.length;
+    const to = src.indexOf('px;', from);
+    if (to !== -1) src = src.slice(0, from) + '100' + src.slice(to);
   }
+
+  // 新会话按钮放进 headerActions 按钮组最前（与搜索、视图、添加工作区同排），
+  // hover 样式与搜索按钮一致（searchButton）。
+  const menuMarker = 'children: [wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {';
+  const idx = src.indexOf(menuMarker);
+  if (idx === -1) throw new Error('workspace: ViewOptionsMenu marker not found');
+
+  const button = 'wide && (0, react_jsx_runtime.jsx)("button", { type: "button", className: WorkspaceBrowser_module_css_default.searchButton, "data-plugin": "dsh-kanban", "aria-label": t("session.new"), title: t("session.new"), onClick: () => { startSession(); }, children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 }) }), ';
+  src = src.slice(0, idx) + button + src.slice(idx);
   return src;
 }
 
