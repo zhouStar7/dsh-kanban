@@ -74,27 +74,15 @@ function patchSidebar(src) {
 }
 
 function patchWorkspace(src) {
-  if (src.includes('data-plugin: "dsh-kanban"')) return src;
+  if (src.includes('"data-plugin": "dsh-kanban"')) return src;
 
-  const searchSlotMarker = 'className: clsx(WorkspaceBrowser_module_css_default.searchSlot, searchExpanded && WorkspaceBrowser_module_css_default.searchSlotExpanded),';
-  const idx = src.indexOf(searchSlotMarker);
-  if (idx === -1) throw new Error('workspace: searchSlot marker not found');
-  const divStart = src.lastIndexOf('wide && (0, react_jsx_runtime.jsx)("div", {', idx);
-  if (divStart === -1) throw new Error('workspace: search slot div start not found');
+  // 新会话按钮放进 headerActions 按钮组（与搜索、视图、添加工作区同排）。
+  const menuMarker = 'children: [wide && (0, react_jsx_runtime.jsx)(ViewOptionsMenu, {';
+  const idx = src.indexOf(menuMarker);
+  if (idx === -1) throw new Error('workspace: ViewOptionsMenu marker not found');
 
-  const button = [
-    'wide && (0, react_jsx_runtime.jsx)("button", {',
-    '\t\t\t\t\t\t\t\ttype: "button",',
-    '\t\t\t\t\t\t\t\tclassName: WorkspaceBrowser_module_css_default.iconButton,',
-    '\t\t\t\t\t\t\t\t"data-plugin": "dsh-kanban",',
-    '\t\t\t\t\t\t\t\t"aria-label": t("session.new"),',
-    '\t\t\t\t\t\t\t\ttitle: t("session.new"),',
-    '\t\t\t\t\t\t\t\tonClick: () => { startSession(); },',
-    '\t\t\t\t\t\t\t\tchildren: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 })',
-    '\t\t\t\t\t\t\t}),',
-    '\t\t\t\t\t\t\t'
-  ].join('\n');
-  src = src.slice(0, divStart) + button + src.slice(divStart);
+  const button = 'wide && (0, react_jsx_runtime.jsx)("button", { type: "button", className: WorkspaceBrowser_module_css_default.iconButton, "data-plugin": "dsh-kanban", "aria-label": t("session.new"), title: t("session.new"), onClick: () => { startSession(); }, children: (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconNewChatOutline16, { size: 14 }) }), ';
+  src = src.slice(0, idx) + button + src.slice(idx);
   return src;
 }
 

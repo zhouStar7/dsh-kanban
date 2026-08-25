@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,19 +11,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, LayoutGrid, Map, RefreshCw } from '@lucide/vue';
+import { LayoutGrid, Map, RefreshCw } from '@lucide/vue';
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from '@/components/ui/tabs';
 import { useBoard } from '@/composables/useBoard';
-import { KANBAN_CLOSE } from '@/lib/bridge';
 import KanbanColumn from './KanbanColumn.vue';
 import NewTaskDialog from './NewTaskDialog.vue';
 import RoadmapView from './RoadmapView.vue';
 import TaskDetailSheet from './TaskDetailSheet.vue';
 import type { Task, TaskStatus } from '@/lib/types';
-
-// Optional host-provided callback: closes the main-body kanban view so the
-// DSH conversation surface is restored (injected by the React shell).
-const onClose = inject<(() => void) | undefined>(KANBAN_CLOSE, undefined);
 
 const board = useBoard();
 const detailTaskId = ref<string | null>(null);
@@ -162,20 +157,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-3 p-4">
+  <div class="flex flex-col h-full gap-3 p-4 pt-10">
     <div class="flex items-center gap-2">
-      <Button
-        v-if="onClose"
-        variant="ghost"
-        size="sm"
-        aria-label="返回对话"
-        title="返回对话"
-        @click="onClose"
-      >
-        <ArrowLeft data-icon="inline-start" />
-        返回
-      </Button>
-
       <NewTaskDialog
         :projects="board.projects"
         :selected-project-id="board.selectedProjectId"
@@ -184,23 +167,23 @@ onUnmounted(() => {
         @create="handleCreate"
       />
 
-      <div class="ml-auto flex items-center gap-2">
-        <Select
-          :model-value="board.selectedProjectId ?? undefined"
-          @update:model-value="(v) => (board.selectedProjectId = v as string)"
-        >
-          <SelectTrigger class="w-64">
-            <SelectValue placeholder="选择项目" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem v-for="p in board.projects" :key="p.id" :value="p.id">
-                {{ p.title }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      <Select
+        :model-value="board.selectedProjectId ?? undefined"
+        @update:model-value="(v) => (board.selectedProjectId = v as string)"
+      >
+        <SelectTrigger class="w-64">
+          <SelectValue placeholder="选择项目" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem v-for="p in board.projects" :key="p.id" :value="p.id">
+              {{ p.title }}
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
+      <div class="ml-auto flex items-center gap-2">
         <Button variant="ghost" size="icon" aria-label="刷新" @click="refresh">
           <RefreshCw data-icon="inline-start" />
         </Button>
