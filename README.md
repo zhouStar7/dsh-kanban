@@ -218,6 +218,9 @@ pnpm test:smoke   # 内存态验证 创建→评论继续→审核→合并 全�
 **Q：为什么改了源码不生效？**
 确保已执行 `pnpm build` 且已重载 DSH 应用。若仍未生效，可 `pnpm sync:dsh` 重装。
 
+**Q：点击「任务看板」后报 `kanban/getBoard failed ... HTTP 404`？**
+说明客户端已加载但主机端 `kanban` 路由没注册。常见原因是本地用 `link:`/`file:` 从仓库目录安装时，仓库自己的 `node_modules/@deepseek-ai/*`（`cordis`、`dsh-typert-protocol`、`dsh-llm`、`dsh-storage-domain` 等 peer 副本）遮蔽了 DSH 运行时里的同一份实例，Typert 网关看不到 `Remote` 标记。解决办法：先 `pnpm pack` 生成 tarball，再用 `dsh plugin --profile web add ./dsh-kanban-0.1.0.tgz` 安装（tarball 不含 node_modules）；或删除仓库 `node_modules/@deepseek-ai` 下这四个 peer 副本后重装。
+
 ## License
 
 MIT

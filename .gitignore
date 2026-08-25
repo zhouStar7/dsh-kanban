@@ -5,6 +5,7 @@ node_modules/
 lib/client.raw.js
 lib/plugin.css
 dist/
+*.tgz
 
 # Local workspace / editor data
 .workbuddy/
