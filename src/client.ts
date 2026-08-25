@@ -63,16 +63,19 @@ function setKanbanOpen(open: boolean) {
 
 /**
  * Open the kanban in the DSH main body: register a dynamic `conversation`
- * slot entry. The shipped conversation UI lives at priority 0; dynamic
- * registrations are assigned a strictly lower priority, and a single slot
- * renders its lowest-priority entry — so while this entry exists the center
- * column shows the kanban instead of the chat / hero surface.
+ * slot entry. The shipped conversation UI lives at priority 0, so we must
+ * register at priority -1 — a single slot renders its lowest-priority entry —
+ * and while this entry exists the center column shows the kanban instead of
+ * the chat / hero surface.
  */
 function openKanban() {
   if (disposeKanbanEntry !== null || kanbanContext === null || kanbanApi === null) return;
   disposeKanbanEntry = kanbanContext.slots.register(
     {
       name: 'conversation',
+      // conversation 是 single 槽位：SlotCore 只渲染同 priority 里第一个注册的条目
+      // （内置会话界面默认 priority 0 且先注册，永远赢）。必须用更低的 priority 才能遮蔽它。
+      priority: -1,
       inject: () => ({ kanbanApi }),
     },
     KanbanMainView as any,
