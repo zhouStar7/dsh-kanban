@@ -77,7 +77,7 @@ function patchWorkspace(src) {
   if (src.includes('"data-plugin": "dsh-kanban"')) return src;
 
   // headerActions 默认 max-width:60px 只放得下两个图标，拉长到 100px 容纳三个按钮。
-  const cssMarker = '.headerActions{opacity:1;visibility:visible;max-width:';
+  const cssMarker = 'headerActions{opacity:1;visibility:visible;max-width:';
   const cssIdx = src.indexOf(cssMarker);
   if (cssIdx !== -1) {
     const from = cssIdx + cssMarker.length;
