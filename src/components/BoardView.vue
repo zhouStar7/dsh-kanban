@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -11,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LayoutGrid, Map, RefreshCw } from '@lucide/vue';
+import { LayoutGrid, Map } from '@lucide/vue';
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from '@/components/ui/tabs';
 import { useBoard } from '@/composables/useBoard';
 import KanbanColumn from './KanbanColumn.vue';
@@ -157,7 +156,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-3 p-4 pt-10">
+  <TabsRoot default-value="board" class="flex min-h-0 h-full flex-col gap-3 p-4 pt-10">
     <div class="flex items-center gap-2">
       <NewTaskDialog
         :projects="board.projects"
@@ -183,15 +182,7 @@ onUnmounted(() => {
         </SelectContent>
       </Select>
 
-      <div class="ml-auto flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label="刷新" @click="refresh">
-          <RefreshCw data-icon="inline-start" />
-        </Button>
-      </div>
-    </div>
-
-    <TabsRoot default-value="board" class="flex min-h-0 flex-1 flex-col gap-3">
-      <TabsList class="w-fit">
+      <TabsList class="w-fit ml-auto">
         <TabsTrigger value="board">
           <LayoutGrid />
           看板
@@ -201,6 +192,7 @@ onUnmounted(() => {
           路线图
         </TabsTrigger>
       </TabsList>
+    </div>
 
       <TabsContent value="board" class="flex-1 min-h-0">
         <div
@@ -232,7 +224,6 @@ onUnmounted(() => {
         </div>
         <RoadmapView v-else :tasks="board.selectedTasks" @open="openDetail" />
       </TabsContent>
-    </TabsRoot>
 
     <TaskDetailSheet
       :task="detailTask"
@@ -243,5 +234,5 @@ onUnmounted(() => {
       @remove="handleRemove"
       @close="detailTaskId = null"
     />
-  </div>
+  </TabsRoot>
 </template>
