@@ -18,3 +18,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local pack backups
+*.tgz.old*
+*.old
