@@ -74,7 +74,7 @@
 
 **E3 测试仅 smoke-host happy path** — ✅ 确认。package.json:22 唯一 `test:smoke` → scripts/smoke-host.mjs：仅 create→review→comment→review→approve→done 直线（:69-92），agents.create 用恒真 fake（:54-63，whenIdle 立即返回）；**无** merge 冲突、resumeTask、moveTask、删除运行中任务、定时执行/取消、git 失败、agent error 分支用例；无任何前端测试（devDependencies 无测试框架）。修复：补状态机关键用例（冲突/删除运行中/恢复）+ vitest 组件测试。工作量 **L**
 
-**E4 双仓库并存** — ✅ 确认。F:/workspace/project 下 dsh-k 与 dsh-kanban-plugin 各带 .git（43 vs 39 commits）；关键文件字节级相同（diff -q lib/index.js、BoardView.vue 均零差异）。修复：归档旧目录、README 标注 canonical。工作量 **S**
+**E4 双仓库并存** — ✅ 确认。F:/workspace/project 下 dsh-k 与 dsh-kanban-plugin 各带 .git（43 vs 39 commits）；关键文件字节级相同（diff -q lib/index.js、BoardView.vue 均零差异）。修复：旧目录已删除（dsh-k 为唯一 canonical 仓库）。工作量 **S**
 
 ## 补充核查
 

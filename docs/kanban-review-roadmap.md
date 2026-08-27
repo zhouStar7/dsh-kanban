@@ -1,6 +1,6 @@
 # dsh-kanban 优化路线图（团队验证收敛版）
 
-> 编制：architect（架构/路线图汇总）｜依据：t1（reviewer-core，P0 验证）、t2（reviewer-features，P1/P2 与工程质量）、t3（designer，样式/可访问性）｜规范仓库：**F:\workspace\project\dsh-k**（dsh-kanban-plugin 为旧副本，本次所有结论均基于 dsh-k 实测源码行号，未引入验证结果之外的新猜测）
+> 编制：architect（架构/路线图汇总）｜依据：t1（reviewer-core，P0 验证）、t2（reviewer-features，P1/P2 与工程质量）、t3（designer，样式/可访问性）｜规范仓库：**F:\workspace\project\dsh-k**（旧副本 dsh-kanban-plugin 已于 2026-08-27 删除，本次所有结论均基于 dsh-k 实测源码行号，未引入验证结果之外的新猜测）
 > 分层规则：按「改动面」分层（纯前端/配置 → 主机端 lib/index.js → 架构级），时间为参考窗口。
 
 ## 0. 收敛统计与打分模型
@@ -48,7 +48,7 @@
 | A10 | Ctrl+K 冲突收敛：src/client.ts:113-127 捕获阶段全局监听（:125，:121-123 preventDefault/stopPropagation，仅排除 alt/shift）→ 改为输入态/非看板 focus 放行 + 宿主键位协商白名单开关 | 2/1/2 | 10 |
 | A11 | pathsCache 淘汰策略 + busy 死代码：usePathAutocomplete.ts:39 模块级 Map 加 TTL/LRU 或失效钩子（:98-114 只写不删）；useBoard.ts:14/:66-118/:130 的 busy 无任何组件消费 → 删除或接入拖拽忙碌态 UI | 1/1/1 | 10 |
 | A12 | 小屏滚动修复：NewTaskDialog.vue:206 的 DialogContent 无 max-h（表单约 700px+）→ 换 DialogScrollContent（组件已存在但零使用）或加 max-h-[85dvh]+overflow-y-auto | 1/1/1 | 10 |
-| A13 | 运维：双仓库清理 E4（dsh-k 与 dsh-kanban-plugin 字节级相同，43 vs 39 commits）→ 归档旧目录、README 标注 canonical | 1/1/1 | 10 |
+| A13 | 运维：双仓库清理 E4（dsh-k 与 dsh-kanban-plugin 字节级相同，43 vs 39 commits）→ 旧目录已删除（dsh-k 为唯一 canonical 仓库） | 1/1/1 | 10 |
 | A14 | Roadmap 刻度与层级（S 部分）：RoadmapView.vue:223 今天线 z-[4] 压任务 z-[3] → pointer-events-none + z 降级；刻度 div（:204-209/:217-222）换 repeating-linear-gradient | 2/1/1 | 20 |
 
 ### Wave B（前端持续打磨，M 级，可与第 2 层并行，约 3-5 天）
