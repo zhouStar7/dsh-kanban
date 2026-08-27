@@ -20,13 +20,19 @@ Turn projects, git branches and AI agents into one automated pipeline: create a 
 - New-session model/time scheduling, git branch dropdown, `/` path autocomplete for descriptions/comments;
 - Full change logs (agent final output) per task.
 
-## 🚀 Install (GitHub Release, one line)
+## 🚀 Install (one line)
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
-Install the plugin, then **restart / reload DSH** — the sidebar shows「会话 / 看板」tabs.
+Installs straight from the GitHub repo — no release needed. To pin a branch / tag / commit, append `#`:
+
+```bash
+dsh plugin --profile web add github:zhouStar7/dsh-kanban#v0.1.0
+```
+
+Then **restart / reload DSH** — the sidebar shows「会话 / 看板」tabs.
 
 ### Update / force refresh
 
@@ -36,11 +42,11 @@ Check the installed version first:
 dsh plugin --profile web ls
 ```
 
-Updating to a new GitHub release requires **remove + add** (a plain restart never re-downloads the tarball — pnpm keeps the old integrity in the lockfile):
+Updating to a newer commit on the default branch still requires **remove + add** (pnpm caches the resolved git commit — a plain restart never re-fetches it):
 
 ```bash
 dsh plugin --profile web remove @deepseek-kanban/plugin
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
 On **DSH Desktop** the harness profile lives under `%APPDATA%\dsh-desktop\harness`, so run the commands with that home (PowerShell):
@@ -48,7 +54,7 @@ On **DSH Desktop** the harness profile lives under `%APPDATA%\dsh-desktop\harnes
 ```powershell
 $env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
 dsh plugin --profile web remove @deepseek-kanban/plugin
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
 Then fully restart DSH Desktop (restart Harness). The plugin inventory should show `@deepseek-kanban/plugin 0.1.1`.
@@ -88,6 +94,12 @@ No telemetry. State lives in the local DSH storage domain and browser side data;
 ## License
 
 MIT
+
+## 👥 Contributors
+
+- [@zhouStar7](https://github.com/zhouStar7) — creator & maintainer
+
+PRs are welcome — for larger changes, please open an issue first.
 
 ## Related
 

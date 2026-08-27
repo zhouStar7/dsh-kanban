@@ -6,16 +6,16 @@ DeepSeek Harness（DSH）任务看板插件 —— 在 DSH Web 左侧边栏提�
 
 ## 安装
 
-从 GitHub 直接安装（推荐）：
+从 GitHub 仓库直接安装（无需 Release，推荐）：
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
-如需指定版本 / 分支（Tag 或 commit 后跟 `#`）：
+如需固定到分支 / Tag / commit，命令后加 `#`：
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban#v0.1.0
 ```
 
 安装完成后**重启 / 重载 DSH 应用**，侧边栏显示「会话 / 看板」tab 即安装成功（侧边栏由插件自写，无需 patch 脚本）。
@@ -28,11 +28,11 @@ dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/l
 dsh plugin --profile web ls
 ```
 
-更新到新的 GitHub release 必须 **remove + add 强制刷新**（只重启不会重新下载 tarball——pnpm 会在 lockfile 里保留旧的 integrity）：
+更新到默认分支的新提交同样需要 **remove + add 强制刷新**（pnpm 会缓存已解析的 git commit，只重启不会重新拉取）：
 
 ```bash
 dsh plugin --profile web remove @deepseek-kanban/plugin
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
 **DSH Desktop** 的 harness profile 在 `%APPDATA%\dsh-desktop\harness`，需带该 DSH_HOME 执行（PowerShell）：
@@ -40,7 +40,7 @@ dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/l
 ```powershell
 $env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
 dsh plugin --profile web remove @deepseek-kanban/plugin
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
 然后完全重启 DSH Desktop（重启 Harness），插件清单应显示 `@deepseek-kanban/plugin 0.1.1`。
@@ -136,10 +136,10 @@ pnpm watch        # 开发时增量构建
 
 ### 安装到 DSH
 
-**普通用户 / 快速体验（从 GitHub 安装）：**
+**普通用户 / 快速体验（从 GitHub 仓库安装）：**
 
 ```bash
-dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+dsh plugin --profile web add github:zhouStar7/dsh-kanban
 ```
 
 **本地开发（`file:` 协议，硬链接实时生效）：**
@@ -152,9 +152,9 @@ dsh plugin --profile web add "file:$(pwd)"
 pnpm sync:dsh     # 等价于 build + remove + add
 ```
 
-> ⚠️ `file:` 协议路径必须是 WSL 原生路径（`<你的 WSL 原生路径>），不要用 `\\wsl.localhost\...` 形式的 Windows 路径，否则 pnpm 会报 `ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND`。
+> ⚠️ `file:` 协议路径必须是 WSL 原生路径（如 `/home/xxx/dsh-k`），不要用 `\\wsl.localhost\...` 形式的 Windows 路径，否则 pnpm 会报 `ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND`。
 
-安装后**重启 / 重载 DSH 应用**（或重载插件）生效。之后侧边栏原有「新会话」位置显示「会话 / 看板」tab。
+安装后**重启 / 重载 DSH 应用**（或重载插件）生效，侧边栏出现「会话 / 看板」tab 即成功。
 
 ### 侧边栏（插件自写，无需补丁脚本）
 
@@ -258,3 +258,9 @@ pnpm test:smoke   # 内存态验证 创建→评论继续→审核→合并 全�
 ## License
 
 MIT
+
+## 贡献者
+
+- [@zhouStar7](https://github.com/zhouStar7) — 作者 & 维护者
+
+欢迎 PR；较大改动请先开 issue 讨论。
