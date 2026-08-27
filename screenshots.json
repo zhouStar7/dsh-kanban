@@ -1,0 +1,10 @@
+[
+  {
+    "file": "docs/assets/kanban-board.png",
+    "caption": { "en": "Board view grouped by status, with roadmap (Gantt) view", "zh": "按状态分组的看板列视图，附路线图甘特视图" }
+  },
+  {
+    "file": "docs/assets/new-task-dialog.png",
+    "caption": { "en": "New task: model scheduling, base branch picker, / path autocomplete", "zh": "新建任务：执行模型/定时、基础分支下拉、/ 路径补全" }
+  }
+]

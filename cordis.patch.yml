@@ -1,4 +1,9 @@
-# dsh bundle patch: inserts this plugin into a profile's layer stack.
+# dsh bundle patch: replaces the stock sidebar with the plugin's own sidebar.
+# The plugin client registers a new `sidebar` owner and renders the official
+# child slots (workspaces / settings / footer.action) so other plugins keep
+# their sidebar entries. Uninstalling the plugin restores the stock sidebar.
+- id: ui-sidebar
+  disabled: true
 - insert:
     - id: kanban
       name: '@deepseek-kanban/plugin'

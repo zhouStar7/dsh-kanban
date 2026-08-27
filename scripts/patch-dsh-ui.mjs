@@ -11,8 +11,9 @@
  */
 import { existsSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 
-const SIDEBAR = 'C:/Users/24905/AppData/Local/Programs/DSH Desktop/resources/app/node_modules/@deepseek-ai/dsh-client-ui-sidebar/lib/client.js';
-const WORKSPACE = 'C:/Users/24905/AppData/Local/Programs/DSH Desktop/resources/app/node_modules/@deepseek-ai/dsh-client-ui-workspace/lib/client.js';
+const APP_ROOT = process.env.DSH_DESKTOP_RESOURCES || (process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA + '/Programs/DSH Desktop/resources/app' : 'C:/Users/24905/AppData/Local/Programs/DSH Desktop/resources/app');
+const SIDEBAR = APP_ROOT + '/node_modules/@deepseek-ai/dsh-client-ui-sidebar/lib/client.js';
+const WORKSPACE = APP_ROOT + '/node_modules/@deepseek-ai/dsh-client-ui-workspace/lib/client.js';
 
 function backup(path) {
   const bak = path + '.dsh-kanban.bak';

@@ -18,13 +18,37 @@ dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/l
 dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
 ```
 
-安装完成后**重启 / 重载 DSH 应用**，侧边栏原有「新会话」位置变为「会话 / 看板」tab 切换即安装成功（DSH Desktop 另需运行 `scripts/patch-dsh-ui.mjs` 移动新建会话按钮，见下文）。
+安装完成后**重启 / 重载 DSH 应用**，侧边栏显示「会话 / 看板」tab 即安装成功（侧边栏由插件自写，无需 patch 脚本）。
 
-> 强制刷新安装：`dsh plugin --profile web remove @deepseek-kanban/plugin && dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"`
+### 更新 / 强制刷新
+
+先确认已安装版本：
+
+```bash
+dsh plugin --profile web ls
+```
+
+更新到新的 GitHub release 必须 **remove + add 强制刷新**（只重启不会重新下载 tarball——pnpm 会在 lockfile 里保留旧的 integrity）：
+
+```bash
+dsh plugin --profile web remove @deepseek-kanban/plugin
+dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+```
+
+**DSH Desktop** 的 harness profile 在 `%APPDATA%\dsh-desktop\harness`，需带该 DSH_HOME 执行（PowerShell）：
+
+```powershell
+$env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
+dsh plugin --profile web remove @deepseek-kanban/plugin
+dsh plugin --profile web add "https://github.com/zhouStar7/dsh-kanban/releases/latest/download/dsh-kanban.tgz"
+```
+
+然后完全重启 DSH Desktop（重启 Harness），插件清单应显示 `@deepseek-kanban/plugin 0.1.1`。
 
 ## 功能特性
 
-- **看板入口**：侧边栏原有「新会话」位置改为「会话 / 看板」tab，点「看板」在**右侧主体区域**打开看板（替换中间对话区，不再是全屏浮层弹窗；看板整体下移、顶部预留 40px；4s 轮询实时刷新），点「会话」tab 回到对话；支持 `Ctrl+K`（macOS 为 `Cmd+K`）快捷键一键打开/关闭。
+- **看板入口**：插件自写侧边栏提供「会话 / 看板」tab（官方工作区/设置/底部槽位原样透传渲染，其他侧边栏插件不受影响），点「看板」在**右侧主体区域**打开看板（替换中间对话区，不再是全屏浮层弹窗；4s 轮询实时刷新），点「会话」tab 回到对话；支持 `Ctrl+K`（macOS 为 `Cmd+K`）快捷键一键打开/关闭。
+- **新会话按钮**：注入工作区头部按钮组最前（带官方 tooltip），按钮组宽度自适应 4 个图标。
 - **双视图切换**：看板顶部 Tabs 切换「看板」列视图与「路线图」甘特图视图（参考 GitHub Projects Roadmap：左侧任务列表 + 右侧时间轴，按状态分组泳道、周/月刻度自适应、今天竖线、任务条按状态着色，点击任意任务打开详情）。
 - **任务状态机**：`待领取 → 执行中 → 待审查 → 已审核 → 已完成`，含 `暂停中` 兜底状态。
 - **agent 自动执行**：任务被 agent 领取后自动改码并 `git commit`，无需人工介入。
@@ -43,7 +67,7 @@ DSH 是「主机平面 cordis 插件 + 客户端插件」双层架构，本插�
 ```
 ┌───────────────────────────── DSH Web（浏览器） ─────────────────────────────┐
 │  lib/client.js（React 外壳）                                                  │
-│    ├─ 侧边栏「会话/看板」tab（配合 patch-dsh-ui.mjs 注入）      │
+│    ├─ 侧边栏「会话/看板」tab（插件自写 sidebar owner）         │
 │    └─ conversation（主体区）→ 动态注册 conversation 槽位遮蔽原对话界面，       │
 │                              挂载 Vue 看板应用（关闭时还原对话）               │
 │         └─ src/（Vue 3 + Tailwind v4 + shadcn-vue 看板 UI）                    │
@@ -132,16 +156,11 @@ pnpm sync:dsh     # 等价于 build + remove + add
 
 安装后**重启 / 重载 DSH 应用**（或重载插件）生效。之后侧边栏原有「新会话」位置显示「会话 / 看板」tab。
 
-### DSH Desktop 侧边栏补丁（新会话按钮 → tab 切换）
+### 侧边栏（插件自写，无需补丁脚本）
 
-DSH Desktop 内置侧边栏的「新会话」按钮不在插件槽位里，需要打一个小补丁：
+本版本改为插件自带侧边栏：`cordis.patch.yml` 禁用官方 `ui-sidebar`，客户端注册自己的 `sidebar` owner 并提供「会话 / 看板」tab；同时继续渲染官方子槽位（`sidebar.workspaces` / `sidebar.settings` / `sidebar.footer.action`），其他侧边栏插件不受影响。不再修改 DSH Desktop 内置文件，升级/卸载更干净。
 
-```bash
-node scripts/patch-dsh-ui.mjs
-```
-
-- 把侧边栏原有「新会话」位置改成「会话 / 看板」tab 切换；
-- 把「新会话」图标按钮加入工作区列表右上角按钮组（与搜索、视图、添加工作区同排，位于按钮组最前）。
+> 旧版本运行过 `patch-dsh-ui.mjs` 的，可以用 `.dsh-kanban.bak` 备份还原官方侧边栏；该脚本仅保留用于迁移。
 
 脚本幂等，会在 `resources/app/node_modules/@deepseek-ai/*/lib/client.js` 旁边生成 `.dsh-kanban.bak` 备份；DSH 升级后重新运行一次即可。
 

@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-kanban/plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DeepSeek Harness 任务看板插件（主机状态机 + git 调度 + 浏览器看板 UI）",
   "type": "module",
   "main": "lib/index.js",
@@ -13,7 +13,8 @@
     "lib/index.js",
     "lib/client.js",
     "cordis.patch.yml",
-    "docs/assets"
+    "docs/assets",
+    "scripts/patch-dsh-ui.mjs"
   ],
   "scripts": {
     "build": "vite build && node scripts/wrap-client.mjs",
@@ -32,7 +33,6 @@
         "@deepseek-ai/dsh-api-gateway",
         "@deepseek-ai/dsh-api-remotes",
         "@deepseek-ai/dsh-client-ui-layout",
-        "@deepseek-ai/dsh-client-ui-sidebar",
         "@deepseek-ai/dsh-client-locale"
       ],
       "platform": "web"
